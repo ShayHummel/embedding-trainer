@@ -1,0 +1,14 @@
+[project]
+name = "embedding-trainer"
+version = "0.1.0"
+requires-python = ">=3.9"
+dependencies = [
+    "accelerate>=1.0.0",
+    "datasets>=4.5.0",
+    "matplotlib>=3.9.4",
+    "pandas>=2.3.3",
+    "scikit-learn>=1.6.1",
+    "sentence-transformers>=5.1.2",
+    "tensorboard>=2.21.0",
+    "torch>=2.8.0",
+]
