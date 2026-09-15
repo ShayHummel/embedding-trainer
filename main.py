@@ -86,11 +86,11 @@ def build_parser() -> argparse.ArgumentParser:
     train_parser = subparsers.add_parser("train", help="Fine-tune the base embedding model on a CSV dataset.")
     train_parser.add_argument("--data", type=Path, default=Path("data/train.csv"), help="Path to the training CSV.")
     train_parser.add_argument(
-        "--base-model", type=str, default="Qwen/Qwen3-Embedding-0.6B", help="Base model name or path."
+        "--base-model", type=str, default="sentence-transformers/all-MiniLM-L6-v2", help="Base model name or path."
     )
     train_parser.add_argument("--output-dir", type=Path, default=Path("runs/embedding-trainer"))
     train_parser.add_argument("--epochs", type=float, default=3.0)
-    train_parser.add_argument("--batch-size", type=int, default=8)
+    train_parser.add_argument("--batch-size", type=int, default=32)
     train_parser.add_argument("--learning-rate", type=float, default=2e-5)
     train_parser.add_argument("--eval-ratio", type=float, default=0.1)
     train_parser.add_argument("--seed", type=int, default=42)
@@ -99,7 +99,7 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=256,
         help="Max token length; longer inputs are truncated. Keeps per-step compute bounded "
-        "even if the base model's own default (e.g. 32768 for Qwen3-Embedding) is far longer.",
+        "even if the base model's own default is much longer.",
     )
     train_parser.add_argument(
         "--max-rows",
@@ -129,7 +129,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     demo_parser.add_argument("text", type=str, help="Input text to encode with both models.")
     demo_parser.add_argument(
-        "--base-model", type=str, default="Qwen/Qwen3-Embedding-0.6B", help="Base model name or path."
+        "--base-model", type=str, default="sentence-transformers/all-MiniLM-L6-v2", help="Base model name or path."
     )
     demo_parser.add_argument(
         "--fine-tuned-model", type=str, required=True, help="Path to the fine-tuned model directory."

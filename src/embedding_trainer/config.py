@@ -6,22 +6,20 @@ from pathlib import Path
 
 @dataclass
 class TrainConfig:
-    base_model: str = "Qwen/Qwen3-Embedding-0.6B"
+    base_model: str = "sentence-transformers/all-MiniLM-L6-v2"
     data_csv: Path = Path("data/train.csv")
     output_dir: Path = Path("runs/embedding-trainer")
     num_train_epochs: float = 3.0
-    # Qwen3-Embedding-0.6B is a ~600M-param decoder, much heavier than the
-    # previous MiniLM default (22M params) — keep batches small by default
-    # to fit laptop-class unified memory; raise if your machine has room.
-    train_batch_size: int = 8
-    eval_batch_size: int = 8
+    train_batch_size: int = 32
+    eval_batch_size: int = 32
     learning_rate: float = 2e-5
     warmup_ratio: float = 0.1
     eval_ratio: float = 0.1
     seed: int = 42
-    # The base model's own default (32768 for Qwen3-Embedding) is far longer
-    # than needed for sentence embeddings and lets a few long documents blow
-    # up per-step compute quadratically; cap it for speed/memory.
+    # Some base models (e.g. decoder-style embedders) default to a much
+    # longer max_seq_length than needed for sentence embeddings, which can
+    # blow up per-step compute quadratically on a few long documents; this
+    # cap keeps that bounded regardless of which --base-model is swapped in.
     max_seq_length: int = 256
 
     # Only used for the unsupervised (label-free text pool) schema.

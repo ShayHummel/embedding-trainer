@@ -6,7 +6,7 @@ end-to-end, runnable locally on Apple Silicon (M5).
 
 ## Requirements
 - Base model: open-weight sentence embedding model (default: 
-  Qwen/Qwen3-Embedding-0.6B). Must be swappable.
+  sentence-transformers/all-MiniLM-L6-v2). Must be swappable.
 - Language: English only.
 - Data: user-provided CSV in data/, with a text column (schema TBD 
   once CSV is shared — likely pairs or text+label for contrastive loss).
