@@ -11,8 +11,6 @@ Supports two input schemas, auto-detected from the CSV header:
    so both formats feed the same training/evaluation path.
 """
 
-from __future__ import annotations
-
 import random
 from collections import defaultdict
 from pathlib import Path

@@ -1,7 +1,7 @@
 [project]
 name = "embedding-trainer"
 version = "0.1.0"
-requires-python = ">=3.9"
+requires-python = ">=3.12"
 dependencies = [
     "accelerate>=1.0.0",
     "datasets>=4.5.0",
