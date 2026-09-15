@@ -74,7 +74,8 @@ uv run main.py train --data data/train.csv
 Useful flags: `--base-model`, `--output-dir` (defaults to
 `runs/embedding-trainer`, watch it with `tensorboard --logdir runs`),
 `--epochs`, `--batch-size` (default 32), `--learning-rate`, `--eval-ratio`,
-`--seed`, `--max-seq-length` (default 256; longer inputs are truncated),
+`--seed`, `--max-seq-length` (default 512, MiniLM's architectural limit;
+longer inputs are truncated),
 and `--demo-text "..."` to run the before/after comparison right after
 training. For the unsupervised text-pool schema only: `--max-rows` (default
 100,000, how many rows to sample), `--no-english-filter` (disable the

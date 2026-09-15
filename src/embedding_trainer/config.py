@@ -20,7 +20,7 @@ class TrainConfig:
     # longer max_seq_length than needed for sentence embeddings, which can
     # blow up per-step compute quadratically on a few long documents; this
     # cap keeps that bounded regardless of which --base-model is swapped in.
-    max_seq_length: int = 256
+    max_seq_length: int = 512
 
     # Only used for the unsupervised (label-free text pool) schema.
     max_rows: int = 100_000

@@ -97,7 +97,7 @@ def build_parser() -> argparse.ArgumentParser:
     train_parser.add_argument(
         "--max-seq-length",
         type=int,
-        default=256,
+        default=512,
         help="Max token length; longer inputs are truncated. Keeps per-step compute bounded "
         "even if the base model's own default is much longer.",
     )
@@ -134,7 +134,7 @@ def build_parser() -> argparse.ArgumentParser:
     demo_parser.add_argument(
         "--fine-tuned-model", type=str, required=True, help="Path to the fine-tuned model directory."
     )
-    demo_parser.add_argument("--max-seq-length", type=int, default=256, help="Max token length; longer inputs are truncated.")
+    demo_parser.add_argument("--max-seq-length", type=int, default=512, help="Max token length; longer inputs are truncated.")
     demo_parser.add_argument(
         "--plot-path", type=str, default="runs/vector_before_after.png", help="Where to save the comparison plot."
     )
