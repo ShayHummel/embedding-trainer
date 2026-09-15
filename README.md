@@ -16,7 +16,7 @@ uv sync
 
 ## Data
 
-Drop a CSV into `data/`. Two schemas are auto-detected:
+Drop a CSV into `data/`. Three schemas are auto-detected:
 
 **1. Pairs** — `sentence1`, `sentence2`, and a `score`/`similarity` (0-1 or
 any numeric range, e.g. STS-style 0-5) or `label` column:
@@ -41,6 +41,30 @@ A dog is running in the park.,animals
 Column names are matched case-insensitively; `text1`/`text2` is also
 accepted as an alias for `sentence1`/`sentence2`.
 
+**3. Unsupervised text pool** — a single free-text column (`text`,
+`content`, or `sentence`) with **no** label/score, e.g. a large unlabeled
+scrape:
+
+```csv
+text_id,content,source_url
+TXT_1,Some article text...,https://example.com/a
+TXT_2,Some other article text...,https://example.com/b
+```
+
+Used when no pair/label columns are found. Since there's nothing to
+supervise on, this trains with a SimCSE-style objective: each sampled
+sentence is duplicated as its own positive pair and relies on dropout noise
+across two forward passes to differ, with in-batch negatives
+(`MultipleNegativesRankingLoss`). Because files like this can be huge, the
+loader reservoir-samples a bounded number of rows in a single streaming
+pass rather than loading the whole CSV, and by default keeps only rows
+detected as English (project scope is English-only) — see
+`--max-rows`, `--no-english-filter`, `--oversample-factor` below. A
+held-out slice is turned into (sentence1, sentence2, score) pairs — each
+text against itself (score 1.0) and against a random other text (score
+0.0) — purely for evaluation, so correlation metrics still show up in
+TensorBoard the same as for the other two schemas.
+
 ## Training
 
 ```bash
@@ -51,6 +75,10 @@ Useful flags: `--base-model`, `--output-dir` (defaults to
 `runs/embedding-trainer`, watch it with `tensorboard --logdir runs`),
 `--epochs`, `--batch-size`, `--learning-rate`, `--eval-ratio`, `--seed`, and
 `--demo-text "..."` to run the before/after comparison right after training.
+For the unsupervised text-pool schema only: `--max-rows` (default 100,000,
+how many rows to sample), `--no-english-filter` (disable the English-only
+filter), and `--oversample-factor` (default 3, how many extra rows to
+sample before language-filtering down to `--max-rows`).
 
 The fine-tuned model is saved to `<output-dir>/final`.
 

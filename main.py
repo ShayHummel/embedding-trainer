@@ -7,7 +7,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 from embedding_trainer.config import TrainConfig
-from embedding_trainer.data import load_train_eval_datasets
+from embedding_trainer.data import load_dataset_for_training
 from embedding_trainer.device import get_device
 from embedding_trainer.model import load_model
 from embedding_trainer.train import build_trainer
@@ -25,20 +25,28 @@ def cmd_train(args: argparse.Namespace) -> None:
         learning_rate=args.learning_rate,
         eval_ratio=args.eval_ratio,
         seed=args.seed,
+        max_rows=args.max_rows,
+        english_only=not args.no_english_filter,
+        oversample_factor=args.oversample_factor,
     )
 
     device = get_device()
     print(f"Using device: {device}")
 
-    train_dataset, eval_dataset, is_binary_score = load_train_eval_datasets(
-        config.data_csv, eval_ratio=config.eval_ratio, seed=config.seed
+    train_dataset, eval_dataset, training_format = load_dataset_for_training(
+        config.data_csv,
+        eval_ratio=config.eval_ratio,
+        seed=config.seed,
+        max_rows=config.max_rows,
+        english_only=config.english_only,
+        oversample_factor=config.oversample_factor,
     )
     print(f"Train examples: {len(train_dataset)} | Eval examples: {len(eval_dataset)}")
-    print(f"Loss: {'ContrastiveLoss' if is_binary_score else 'CosineSimilarityLoss'}")
+    print(f"Training format: {training_format}")
 
     base_model = load_model(config.base_model, device)
 
-    trainer = build_trainer(base_model, train_dataset, eval_dataset, is_binary_score, config)
+    trainer = build_trainer(base_model, train_dataset, eval_dataset, training_format, config)
     trainer.train()
 
     final_model_dir = config.output_dir / "final"
@@ -85,6 +93,24 @@ def build_parser() -> argparse.ArgumentParser:
     train_parser.add_argument("--learning-rate", type=float, default=2e-5)
     train_parser.add_argument("--eval-ratio", type=float, default=0.1)
     train_parser.add_argument("--seed", type=int, default=42)
+    train_parser.add_argument(
+        "--max-rows",
+        type=int,
+        default=100_000,
+        help="Max rows to sample for the unsupervised (label-free text pool) schema.",
+    )
+    train_parser.add_argument(
+        "--no-english-filter",
+        action="store_true",
+        help="Disable the English-only language filter for the unsupervised schema.",
+    )
+    train_parser.add_argument(
+        "--oversample-factor",
+        type=int,
+        default=3,
+        help="For the unsupervised schema: how many extra rows to sample before "
+        "language-filtering down to --max-rows.",
+    )
     train_parser.add_argument(
         "--demo-text", type=str, default=None, help="If set, run show_vector_before_after on this text after training."
     )

@@ -17,6 +17,11 @@ class TrainConfig:
     eval_ratio: float = 0.1
     seed: int = 42
 
+    # Only used for the unsupervised (label-free text pool) schema.
+    max_rows: int = 100_000
+    english_only: bool = True
+    oversample_factor: int = 3
+
     def __post_init__(self) -> None:
         self.data_csv = Path(self.data_csv)
         self.output_dir = Path(self.output_dir)

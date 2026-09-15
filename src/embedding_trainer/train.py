@@ -8,7 +8,11 @@ from sentence_transformers import (
     SentenceTransformerTrainingArguments,
 )
 from sentence_transformers.sentence_transformer.evaluation import EmbeddingSimilarityEvaluator
-from sentence_transformers.sentence_transformer.losses import ContrastiveLoss, CosineSimilarityLoss
+from sentence_transformers.sentence_transformer.losses import (
+    ContrastiveLoss,
+    CosineSimilarityLoss,
+    MultipleNegativesRankingLoss,
+)
 
 from datasets import Dataset
 
@@ -24,14 +28,26 @@ def build_evaluator(eval_dataset: Dataset, name: str = "eval") -> EmbeddingSimil
     )
 
 
+def build_loss(model: SentenceTransformer, training_format: str):
+    if training_format == "unsupervised":
+        return MultipleNegativesRankingLoss(model)
+    if training_format == "contrastive":
+        return ContrastiveLoss(model)
+    if training_format == "cosine_similarity":
+        return CosineSimilarityLoss(model)
+    raise ValueError(f"Unknown training_format: {training_format!r}")
+
+
 def build_trainer(
     model: SentenceTransformer,
     train_dataset: Dataset,
     eval_dataset: Dataset,
-    is_binary_score: bool,
+    training_format: str,
     config: TrainConfig,
 ) -> SentenceTransformerTrainer:
-    loss = ContrastiveLoss(model) if is_binary_score else CosineSimilarityLoss(model)
+    loss = build_loss(model, training_format)
+    # eval_dataset is always (sentence1, sentence2, score) regardless of
+    # training_format, so the same evaluator works for every format.
     evaluator = build_evaluator(eval_dataset)
 
     # TrainingArguments no longer takes a logging_dir kwarg; the TensorBoard
