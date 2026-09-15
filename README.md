@@ -2,9 +2,9 @@
 
 Train, test, and validate a sentence embedding model end-to-end, locally on
 Apple Silicon (MPS with CPU fallback). Fine-tunes an open-weight
-sentence-transformers model (default:
-`sentence-transformers/all-MiniLM-L6-v2`) on your own CSV data using
-`SentenceTransformerTrainer`, with evaluation metrics logged to TensorBoard.
+sentence-transformers model (default: `Qwen/Qwen3-Embedding-0.6B`) on your
+own CSV data using `SentenceTransformerTrainer`, with evaluation metrics
+logged to TensorBoard.
 
 ## Setup
 
@@ -73,31 +73,30 @@ uv run main.py train --data data/train.csv
 
 Useful flags: `--base-model`, `--output-dir` (defaults to
 `runs/embedding-trainer`, watch it with `tensorboard --logdir runs`),
-`--epochs`, `--batch-size` (default 32), `--learning-rate`, `--eval-ratio`,
-`--seed`, `--max-seq-length` (default 512, MiniLM's architectural limit;
-longer inputs are truncated),
-and `--demo-text "..."` to run the before/after comparison right after
-training. For the unsupervised text-pool schema only: `--max-rows` (default
-100,000, how many rows to sample), `--no-english-filter` (disable the
-English-only filter), and `--oversample-factor` (default 3, how many extra
-rows to sample before language-filtering down to `--max-rows`).
+`--epochs`, `--batch-size` (default 8 — Qwen3-Embedding-0.6B is a ~600M-param
+decoder, much heavier than a MiniLM-style encoder, so raise this only if
+your machine has memory to spare), `--learning-rate`, `--eval-ratio`,
+`--seed`, `--max-seq-length` (default 512; longer inputs are truncated —
+Qwen3-Embedding's own native context is far longer, 32768, but attention
+cost is quadratic in sequence length, so raising this trades speed for less
+truncation on long documents), and `--demo-text "..."` to run the
+before/after comparison right after training. For the unsupervised
+text-pool schema only: `--max-rows` (default 100,000, how many rows to
+sample), `--no-english-filter` (disable the English-only filter), and
+`--oversample-factor` (default 3, how many extra rows to sample before
+language-filtering down to `--max-rows`).
 
 The fine-tuned model is saved to `<output-dir>/final`.
 
-### Swapping in a larger/decoder-based base model (e.g. Qwen3-Embedding)
+### Notes on decoder-based embedding models (e.g. Qwen3-Embedding)
 
-`--base-model` accepts any sentence-transformers-compatible model. If you
-swap in a much larger or decoder-based model, two things to know:
-
-- `load_model()` always forces `torch_dtype=float32` regardless of the
-  checkpoint's native dtype. Some models (e.g. Qwen3-Embedding) ship as
-  `bfloat16`, and full-parameter fine-tuning directly in bf16 produced
-  `NaN` eval loss on the MPS backend in testing — MPS's bf16 op
-  coverage/precision is less mature than CUDA's. If you see `NaN` in
-  TensorBoard after swapping models, this is already handled, but worth
-  knowing about.
-- Lower `--batch-size` (e.g. 8) for a multi-hundred-million-parameter
-  model — it needs far more memory per example than MiniLM (22M params).
+`--base-model` accepts any sentence-transformers-compatible model.
+`load_model()` always forces `torch_dtype=float32` regardless of the
+checkpoint's native dtype — Qwen3-Embedding ships as `bfloat16`, and
+full-parameter fine-tuning directly in bf16 produced `NaN` eval loss on the
+MPS backend in testing (MPS's bf16 op coverage/precision is less mature
+than CUDA's). If you see `NaN` in TensorBoard after swapping to a different
+base model, this is already handled here, but worth knowing about.
 
 ## Before/after comparison
 
